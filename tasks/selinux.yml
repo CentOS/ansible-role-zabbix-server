@@ -1,0 +1,29 @@
+- name: Enabling selinux booleans
+  seboolean:
+    name: "{{ item }}"
+    persistent: yes
+    state: yes
+  with_items:
+    - httpd_can_network_connect
+    - zabbix_can_network
+  when: ansible_selinux.status == "enabled"
+
+- name: Distributing custom selinux policy
+  copy:
+    src: "selinux/{{ item }}"
+    dest: "/etc/selinux/centos/{{ item }}"
+  with_items:
+    - centos-zabbix-server.pp
+  register: sepolicy  
+  tags:
+    - selinux
+  when: ansible_selinux.status == "enabled"
+
+- name: Reloading selinux polic on change
+  shell: "/usr/sbin/semodule -u /etc/selinux/centos/{{ item.item }}"
+  with_items: "{{ sepolicy.results }}"
+  when: item.changed
+  no_log: True
+  tags:
+    - selinux
+

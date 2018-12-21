@@ -1,0 +1,142 @@
+---
+# tasks file for zabbix-server
+
+- name: Creating mandatory DB 
+  include_role: 
+    name: mysql
+    tasks_from: db_remote
+  vars:
+    db_user: "{{ zabbix_db_user }}"
+    db_pass: "{{ zabbix_db_pass }}"
+    db_name: "{{ zabbix_db_name }}"
+  when: use_remote_mysql_host
+  delegate_to: "{{ mysql_host }}"
+
+- name: Opening iptables if needed on remote mysql host
+  include_role: 
+    name: iptables
+    tasks_from: remote-mysqld
+  when: use_remote_mysql_host
+  delegate_to: "{{ mysql_host }}"
+
+- include_role:
+    name: mysql
+  when: not use_remote_mysql_host
+
+- name: Creating mandatory (local) Zabbix DB 
+  include_role: 
+    name: mysql
+    tasks_from: db
+  vars:
+    mysql_db_user: "{{ zabbix_db_user }}"
+    mysql_db_pass: "{{ zabbix_db_pass }}"
+    mysql_db_name: "{{ zabbix_db_name }}"
+  when: not use_remote_mysql_host
+  tags:
+    - db
+
+- name: Configuring httpd
+  include_role:
+    name: httpd
+
+- name: Configuring https
+  include_role:
+    name: httpd
+    tasks_from: tls
+
+- name: Installing required pkgs for Zabbix
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - zabbix-web-mysql
+    - zabbix-server-mysql
+    - zabbix-get
+
+- name: Finding the schema to load in mysql
+  shell: find /usr/share/doc -iname create.sql.gz|grep zabbix
+  register: zabbix_sql_schema
+  when: mysql_created_db.changed
+
+- name: Importing mysql schema if needed
+  mysql_db:
+    name: "{{ zabbix_db_name }}"
+    state: import
+    target: "{{ zabbix_sql_schema.stdout }}"
+  when: mysql_created_db.changed
+  tags:
+    - db
+
+- name: Configuring zabbix server
+  template:
+    src: zabbix_server.conf.j2
+    dest: /etc/zabbix/zabbix_server.conf
+  notify: restart_zabbix_server
+ 
+- name: Ensuring Zabbix server is started
+  service:
+    name: zabbix-server
+    state: started
+    enabled: True          
+
+- name: Configure Zabbix web UI
+  template:
+    src: zabbix.conf.php.j2
+    dest: /etc/zabbix/web/zabbix.conf.php
+
+- include_tasks: selinux.yml
+
+- name: Configuring http vhost
+  template:
+    src: httpd-zabbix.conf.j2
+    dest: /etc/httpd/conf.d/02_zabbix.conf
+  notify: restart_httpd 
+
+# https is needed
+- name: Distributing TLS keys
+  include_role:
+    name: httpd
+    tasks_from: pki-tls
+  vars:
+    pki_hostname: "{{ zabbix_httpd_vhost_name }}"
+  when: zabbix_httpd_tls_redirect
+
+- name: Configuring https vhost
+  template:
+    src: httpd-ssl-zabbix.conf.j2
+    dest: /etc/httpd/conf.d/ssl-02_zabbix.conf
+  notify: restart_httpd 
+  when: zabbix_httpd_tls_redirect
+ 
+# Iptables rules
+- name: Allowing src ip to reach zabbix server
+  include_role:
+    name: iptables
+    tasks_from: custom-policy-list
+  vars:
+    iptables_policy_name: zabbix-server
+    iptables_protocol: tcp
+    iptables_port: 10051
+    iptables_allowed_from: "{{ zabbix_iptables_from }}"
+
+# Custom zabbix scripts
+- name: Importing zabbix scripts
+  copy:
+    src: "{{ item }}"
+    dest: /usr/lib/zabbix/
+  with_items:
+    - alertscripts
+    - externalscripts
+
+# Backup
+- name: Ensuring backup user and jobs
+  include_role:
+    name: centos-backup
+    tasks_from: client
+
+- include_role:
+    name: postfix
+    tasks_from: relay_to
+  vars:
+    postfix_relay_to: True  
+    

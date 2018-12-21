@@ -1,0 +1,74 @@
+<VirtualHost *:443>
+DocumentRoot /var/www/status
+ErrorLog logs/ssl-{{ zabbix_httpd_vhost_name }}_error.log
+TransferLog logs/ssl-{{ zabbix_httpd_vhost_name }}_access.log
+LogLevel warn
+SSLEngine on
+SSLHonorCipherOrder on
+SSLProtocol all -SSLv2 -SSLv3
+SSLCipherSuite ALL:!ADH:!EXPORT:!SSLv2:RC4+RSA:+HIGH:+MEDIUM:+LOW:!aNULL:!eNULL:!DES:!MD5:!PSK:!RC4
+SSLCertificateFile /etc/pki/tls/certs/{{ zabbix_httpd_vhost_name }}.crt
+SSLCertificateKeyFile /etc/pki/tls/private/{{ zabbix_httpd_vhost_name }}.key
+SSLCertificateChainFile /etc/pki/tls/certs/{{ zabbix_httpd_vhost_name }}-CAChain.crt
+
+ServerName	{{ zabbix_httpd_vhost_name }}
+
+ Header always set Strict-Transport-Security "max-age=31536000"  
+ Header always set X-Frame-Options "SAMEORIGIN"
+ Header always set X-Xss-Protection "1; mode=block"
+ Header always set X-Content-Type-Options "nosniff"
+ Header always set Referrer-Policy "same-origin"
+
+RewriteEngine On
+   RewriteCond $1 !^.well-known
+   RewriteRule ^/$ /zabbix/ [R]
+
+
+Alias /zabbix /usr/share/zabbix
+
+<Directory "/usr/share/zabbix">
+    Options FollowSymLinks
+    AllowOverride None
+    Require all granted
+
+    <IfModule mod_php5.c>
+        php_value max_execution_time 300
+        php_value memory_limit 128M
+        php_value post_max_size 16M
+        php_value upload_max_filesize 2M
+        php_value max_input_time 300
+        php_value always_populate_raw_post_data -1
+	php_value date.timezone Europe/London
+        # php_value date.timezone Europe/Riga
+    </IfModule>
+</Directory>
+
+<Directory "/usr/share/zabbix/conf">
+    Require all denied
+</Directory>
+
+<Directory "/usr/share/zabbix/app">
+    Require all denied
+</Directory>
+
+<Directory "/usr/share/zabbix/include">
+    Require all denied
+</Directory>
+
+<Directory "/usr/share/zabbix/local">
+    Require all denied
+</Directory>
+
+<Files ~ "\.(cgi|shtml|phtml|php3?)$">
+    SSLOptions +StdEnvVars
+</Files>
+<Directory "/var/www/cgi-bin">
+    SSLOptions +StdEnvVars
+</Directory>
+SetEnvIf User-Agent ".*MSIE.*" \
+         nokeepalive ssl-unclean-shutdown \
+         downgrade-1.0 force-response-1.0
+CustomLog logs/ssl-{{ zabbix_httpd_vhost_name }}_request.log \
+          "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %b"
+</VirtualHost> 
+

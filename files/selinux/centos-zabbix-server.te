@@ -1,0 +1,13 @@
+module centos-zabbix-server 1.1;
+
+require {
+        type zabbix_script_t;
+        type zabbix_t;
+        class process signal;
+	class process setrlimit;
+}
+
+#============= zabbix_t ==============
+allow zabbix_t zabbix_script_t:process signal;
+allow zabbix_t self:process setrlimit;
+

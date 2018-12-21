@@ -1,0 +1,54 @@
+<VirtualHost *:80>
+   ServerName mon.centos.org
+   DocumentRoot /var/www/html/
+   CustomLog logs/{{ zabbix_httpd_vhost_name }}_access.log combined
+   ErrorLog logs/{{ zabbix_httpd_vhost_name }}_error.log
+
+
+ RewriteEngine On
+   RewriteCond $1 !^.well-known
+   {% if zabbix_httpd_tls_redirect %}
+   RewriteCond %{HTTPS} !=on
+   RewriteRule ^/?(.*) https://{{ zabbix_httpd_vhost_name }}/$1 [R,L]
+   {% endif %}
+   RewriteRule ^/$ /zabbix/ [R]
+
+
+Alias /zabbix /usr/share/zabbix
+
+<Directory "/usr/share/zabbix">
+    Options FollowSymLinks
+    AllowOverride None
+    Require all granted
+
+    <IfModule mod_php5.c>
+        php_value max_execution_time 300
+        php_value memory_limit 128M
+        php_value post_max_size 16M
+        php_value upload_max_filesize 2M
+        php_value max_input_time 300
+        php_value always_populate_raw_post_data -1
+	php_value date.timezone Europe/London
+        # php_value date.timezone Europe/Riga
+    </IfModule>
+</Directory>
+
+<Directory "/usr/share/zabbix/conf">
+    Require all denied
+</Directory>
+
+<Directory "/usr/share/zabbix/app">
+    Require all denied
+</Directory>
+
+<Directory "/usr/share/zabbix/include">
+    Require all denied
+</Directory>
+
+<Directory "/usr/share/zabbix/local">
+    Require all denied
+</Directory>
+
+
+</VirtualHost>
+

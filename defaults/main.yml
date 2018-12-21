@@ -1,0 +1,19 @@
+---
+# defaults file for zabbix-server
+# DB settings
+use_remote_mysql_host: False
+mysql_host: localhost
+zabbix_db_name: zabbix
+zabbix_db_user: zabbix
+zabbix_db_pass: monitorme
+
+# httpd vhost and settings
+zabbix_httpd_vhost_name: localhost.localdomain
+# Do we want to redirect to https://name/zabbix
+# If so, we'll use vhost_name to copy the .key,cert,cachain files
+zabbix_httpd_tls_redirect: False
+
+# Iptables settings
+# from which ip ranges/addresses we want to export tcp/10051 for zabbix server port
+zabbix_iptables_from:
+  - 0.0.0.0/0
