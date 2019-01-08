@@ -1,0 +1,89 @@
+#!/bin/bash
+
+#
+# This wrapper script will use zabbix-cli to interact with zabbix api
+# It will be called from ansible with some variables
+# see usage() for parameters 
+# We'll also try to exit 0 when no change, 1 when error and 2 when changed
+#
+
+function usage() {
+cat << EOF
+
+You need to call the script like this : $0 -arguments
+ -n : node/host to configure in zabbix (mandatory)
+ -t : template to link to host in zabbix
+ -g : zabbix groups the node should be member of
+ -h : display this help
+
+EOF
+}
+
+function varcheck() {
+if [ -z "$1" ] ; then
+        usage
+        exit 1
+fi
+}
+
+while getopts "hn:t:g:" option
+do
+  case ${option} in
+    h)
+      usage
+      exit 1
+      ;;
+    n)
+      zabbix_host=${OPTARG}
+      ;;
+    t)
+      zabbix_template=${OPTARG}
+      ;;
+    g)
+      zabbix_group=${OPTARG}
+      ;;
+    ?)
+      usage
+      exit
+      ;;
+  esac
+done
+
+varcheck ${zabbix_host}
+
+json_host_details=$(zabbix-cli -o json -C "show_host ${zabbix_host}")
+echo $json_host_details | jq '.[].host'|grep -q ${zabbix_host}
+if [ "$?" -ne "0" ]; then
+  exit 1  
+fi
+
+# Templates, testing if we got one and if so linking
+if [ ! -z "${zabbix_template}" ]; then
+  echo $json_host_details | jq '.[].templates[].name' |grep -q "${zabbix_template}"
+  if [ "$?" -ne "0" ]; then
+    zabbix-cli -o json -C "link_template_to_host \"${zabbix_template}\" ${zabbix_host}" >/dev/null
+    if [ "$?" -ne "0" ] ; then
+      exit 1
+    else
+      exit 2
+    fi 
+  else
+    exit 0
+  fi
+fi
+
+# Groups, testing if we got one and if so adding
+if [ ! -z "${zabbix_group}" ]; then
+  echo $json_host_details | jq '.[].groups[].name' |grep -q "${zabbix_group}"
+  if [ "$?" -ne "0" ]; then
+    zabbix-cli -o json -C "add_host_to_hostgroup ${zabbix_host} \"${zabbix_group}\"" >/dev/null
+    if [ "$?" -ne "0" ] ; then
+      exit 1
+    else
+      exit 2
+    fi 
+  else
+    exit 0
+  fi
+fi
+

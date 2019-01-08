@@ -1,0 +1,36 @@
+- name: Ensuring some cli tools are available for wrapper scripts
+  yum:
+    name: "{{ item }}"
+    state: installed
+  with_items:
+    - zabbix-cli
+    - jq
+
+- name: Directory structure for zabbix-cli
+  file:
+    path: /etc/zabbix-cli
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+
+- name: Template for zabbix-cli
+  template:
+    src: zabbix-cli.conf.j2
+    dest: /etc/zabbix-cli/zabbix-cli.conf
+
+- name: Auth file for zabbix-cli
+  template:
+    src: zabbix-cli_auth.j2
+    dest: /root/.zabbix-cli_auth
+    owner: root
+    group: root
+    mode: 0400
+
+- name: Wrapper script for host config
+  template:
+    src: zabbix_host_tool
+    dest: /usr/libexec/centos/zabbix_host_tool
+    owner: root
+    group: root
+    mode: 0750

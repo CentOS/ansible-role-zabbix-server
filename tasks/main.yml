@@ -85,6 +85,7 @@
     dest: /etc/zabbix/web/zabbix.conf.php
 
 - include_tasks: selinux.yml
+- include_tasks: cli.yml
 
 - name: Configuring http vhost
   template:

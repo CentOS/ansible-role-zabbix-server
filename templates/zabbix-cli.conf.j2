@@ -1,0 +1,95 @@
+;
+
+; ######################
+; Zabbix API section
+; ######################
+[zabbix_api]
+
+; Zabbix API URL without /api_jsonrpc.php
+; NB: http does not work, and does so in unexpected ways (with json parse error)
+zabbix_api_url={{ zabbix_api_url }}
+
+
+; ############################
+; zabbix_config section
+; ############################
+
+[zabbix_config]
+
+; system ID. This ID will be use in the zabbix-cli prompt
+; to identify the system we are connected to.
+; Default: zabbix-ID
+system_id={{ zabbix_api_url }}
+
+
+; Default hostgroup. We need a default hostgroup when
+; creating a host.
+; Default: All-hosts
+default_hostgroup='Linux servers'
+
+; Default admin usergroup/s(root). We need a default Admin usergroup when
+; creating a hostgroup to get the right privileges in place.
+; Default: Zabbix-root
+default_admin_usergroup=Zabbix-root
+
+; Default usergroup. We need a default usergroup/s when
+; creating a user to get the default access in place.
+; Default: All-users
+default_create_user_usergroup=All-users
+
+; Default notification usergroup. We need a default notification usergroup when
+; creating a notification user to get the default access in place.
+; Default: All-notification-users
+default_notification_users_usergroup=All-notification-users
+
+; Default directory to save exported configuration files. 
+; Default: $HOME/zabbix_exports
+;default_directory_exports=
+
+; Default export format. 
+; default_export_format: JSON, XML
+; Default: JSON
+; default_export_format=JSON
+;
+; We deactivate this parameter until
+; https://support.zabbix.com/browse/ZBX-10607 gets fixed.  
+; We use XML as the export format.
+
+; Include timestamp in export filenames
+; include_timestamp_export_filename: ON, OFF
+; Default: ON
+include_timestamp_export_filename=ON
+
+; Use colors when showing alarm information
+; use_colors: ON, OFF
+; Default: ON
+use_colors=ON
+
+; Generate a file $HOME/.zabbix-cli_auth_token with the API-token
+; delivered by the API after the last authentication of a user. If
+; this file exists and the token is still active, the user would not
+; have to write the username/password to login
+; use_auth_token_file: ON,OFF
+; Default: OFF
+use_auth_token_file=OFF
+
+
+; ######################
+; Logging section
+; ######################
+[logging]
+
+; The user running zabbix-cli has to have RW access to log_file if
+; logging is active
+; Logging: ON, OFF
+; Default: OFF
+logging=OFF
+
+; Log level: DEBUG, INFO, WARN, ERROR, CRITICAL
+; Default: ERROR
+log_level=INFO
+
+; Log file used by zabbix-cli
+; Default: /var/log/zabbix-cli/zabbix-cli.log
+log_file=/var/log/zabbix-cli/zabbix-cli.log
+

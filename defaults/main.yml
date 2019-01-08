@@ -17,3 +17,8 @@ zabbix_httpd_tls_redirect: False
 # from which ip ranges/addresses we want to export tcp/10051 for zabbix server port
 zabbix_iptables_from:
   - 0.0.0.0/0
+
+# For zabbix-cli/api
+zabbix_api_url: http://localhost.localdomain/zabbix
+zabbix_api_user: user
+zabbix_api_pass: pass
