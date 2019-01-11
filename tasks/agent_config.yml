@@ -1,4 +1,4 @@
-- name: Configuring zabbix agent - template[s]
+- name: Configuring zabbix agent - Template[s]
   shell: /usr/libexec/centos/zabbix_host_tool -n {{ inventory_hostname }} -t "{{ item }}"
   with_items: "{{ zabbix_templates }}"
   register: zbx_tpl_result
@@ -6,7 +6,7 @@
   failed_when: "zbx_tpl_result.rc == 1"
   delegate_to: "{{ zabbix_api_srv }}"
 
-- name: Configuring zabbix agent - template[s]
+- name: Configuring zabbix agent - Group[s]
   shell: /usr/libexec/centos/zabbix_host_tool -n {{ inventory_hostname }} -g "{{ item }}"
   with_items: "{{ zabbix_groups }}"
   register: zbx_grp_result
