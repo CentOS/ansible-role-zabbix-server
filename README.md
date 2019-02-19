@@ -15,3 +15,6 @@ This role can depend on some other roles, either statically defined, or dynamica
 
 All those roles are declared in our [requirements.yml](https://github.com/CentOS/ansible-infra-playbooks/blob/master/requirements-production.yml) file.
 
+### License
+MIT (see [LICENSE](LICENSE) file)
+
