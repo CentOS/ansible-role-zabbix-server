@@ -101,6 +101,8 @@
   vars:
     pki_hostname: "{{ zabbix_httpd_vhost_name }}"
   when: zabbix_httpd_tls_redirect
+  tags:
+    - tls
 
 - name: Configuring https vhost
   template:
