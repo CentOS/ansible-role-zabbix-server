@@ -52,6 +52,7 @@
     - zabbix-web-mysql
     - zabbix-server-mysql
     - zabbix-get
+    - bind-utils
 
 - name: Finding the schema to load in mysql
   shell: find /usr/share/doc -iname create.sql.gz|grep zabbix
@@ -127,9 +128,12 @@
   copy:
     src: "{{ item }}"
     dest: /usr/lib/zabbix/
+    mode: 0755
   with_items:
     - alertscripts
     - externalscripts
+  tags:
+    - scripts
 
 # Backup
 - name: Ensuring backup user and jobs
