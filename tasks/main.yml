@@ -71,6 +71,7 @@
   template:
     src: zabbix_server.conf.j2
     dest: /etc/zabbix/zabbix_server.conf
+    mode: 0644
   notify: restart_zabbix_server
  
 - name: Ensuring Zabbix server is started
@@ -83,6 +84,7 @@
   template:
     src: zabbix.conf.php.j2
     dest: /etc/zabbix/web/zabbix.conf.php
+    mode: 0644
 
 - include_tasks: selinux.yml
 - include_tasks: cli.yml
@@ -91,6 +93,7 @@
   template:
     src: httpd-zabbix.conf.j2
     dest: /etc/httpd/conf.d/02_zabbix.conf
+    mode: 0644
   notify: restart_httpd 
 
 # https is needed
@@ -108,6 +111,7 @@
   template:
     src: httpd-ssl-zabbix.conf.j2
     dest: /etc/httpd/conf.d/ssl-02_zabbix.conf
+    mode: 0644
   notify: restart_httpd 
   when: zabbix_httpd_tls_redirect
  
