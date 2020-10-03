@@ -45,13 +45,8 @@
 
 - name: Installing required pkgs for Zabbix
   yum:
-    name: "{{ item }}"
+    name: ['zabbix-web-mysql', 'zabbix-server-mysql', 'zabbix-get', 'bind-utils']
     state: latest
-  with_items:
-    - zabbix-web-mysql
-    - zabbix-server-mysql
-    - zabbix-get
-    - bind-utils
 
 - name: Finding the schema to load in mysql
   shell: find /usr/share/doc -iname create.sql.gz|grep zabbix

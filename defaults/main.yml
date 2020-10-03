@@ -7,6 +7,23 @@ zabbix_db_name: zabbix
 zabbix_db_user: zabbix
 zabbix_db_pass: monitorme
 
+# Zabbix server settings, see official zabbix doc for explanations
+zabbix_pollers: 120
+zabbix_ipmi_pollers: 2
+zabbix_proxy_pollers: 5
+zabbix_unreach_pollers: 30
+zabbix_http_pollers: 10
+zabbix_preprocessors: 10
+zabbix_trappers: 240
+zabbix_pingers: 20
+zabbix_db_syncers: 6
+zabbix_cache_size: 128M
+zabbix_history_cache_size: 64M
+zabbix_value_cache_size: 128M
+zabbix_trend_cache_size: 32M
+zabbix_proxy_conf_frequency: 300
+zabbix_proxy_data_frequency: 60
+
 # httpd vhost and settings
 zabbix_httpd_vhost_name: localhost.localdomain
 # Do we want to redirect to https://name/zabbix
