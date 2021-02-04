@@ -1,10 +1,7 @@
 - name: Ensuring some cli tools are available for wrapper scripts
   yum:
-    name: "{{ item }}"
+    name: ['zabbix-cli', 'jq']
     state: installed
-  with_items:
-    - zabbix-cli
-    - jq
 
 - name: Directory structure for zabbix-cli
   file:

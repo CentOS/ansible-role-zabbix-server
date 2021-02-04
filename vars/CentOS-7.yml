@@ -1,0 +1,19 @@
+zabbix_server_pkgs:
+  - zabbix-server-mysql
+  - zabbix-web
+  - zabbix-web-mysql-scl
+  - zabbix-web-deps-scl
+  - zabbix-apache-conf-scl
+  - zabbix-get
+  - bind-utils
+
+zabbix_php_pkgs:
+  - rh-php73
+  - rh-php73-php-bcmath
+  - rh-php73-php-fpm
+  - rh-php73-php-gd 
+  - rh-php73-php-ldap
+  - rh-php73-php-mbstring 
+  - rh-php73-php-xml 
+  - rh-php73-php-mysqlnd 
+

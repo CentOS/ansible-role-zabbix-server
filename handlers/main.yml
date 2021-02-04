@@ -5,3 +5,7 @@
   service:
     name: zabbix-server
     state: restarted
+- name: restart_rh_php73_fpm
+  service:
+    name: rh-php73-php-fpm
+    state: restarted
