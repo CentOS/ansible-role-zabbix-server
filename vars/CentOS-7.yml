@@ -7,6 +7,12 @@ zabbix_server_pkgs:
   - zabbix-get
   - bind-utils
 
+zabbix_cli_pkgs:
+  - zabbix-cli
+  - jq
+  - python-pyzabbix
+  - PyYAML
+
 zabbix_php_pkgs:
   - rh-php73
   - rh-php73-php-bcmath

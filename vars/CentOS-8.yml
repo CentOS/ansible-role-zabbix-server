@@ -1,0 +1,15 @@
+zabbix_server_pkgs:
+  - zabbix-server-mysql
+  - zabbix-web
+  - zabbix-web-mysql
+  - zabbix-apache-conf
+  - zabbix-get
+  - bind-utils
+
+zabbix_cli_pkgs:
+  - zabbix-cli
+  - jq
+  - python3-pyzabbix
+  - python3-pyyaml
+
+

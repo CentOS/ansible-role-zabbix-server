@@ -1,0 +1,76 @@
+{% if ansible_distribution_major_version == '7' %}
+#!/usr/bin/env python
+{% else %}
+#!/usr/bin/env python3
+{% endif %}
+
+"""
+Looks up a host based on its name, and then update PSK/TLS settings
+Needs ~/.zapi-tools.yaml like this for authentication and zabbix api server url:
+zabbix:
+  server:
+  user:
+  pass:
+"""
+
+from pyzabbix import ZabbixAPI, ZabbixAPIException
+import sys
+import os
+import yaml
+import argparse
+
+# Parsing variables from config file
+config_file = os.getenv('HOME')+'/.zapi-tools.yaml'
+if os.path.exists(config_file):
+  with open(config_file, 'r') as ymlfile:
+    cfg = yaml.load(ymlfile)
+else:
+  print("%s config file not found !" % (config_file))
+  sys.exit(1)
+
+ZABBIX_SERVER = cfg['zabbix']['server']
+ZABBIX_USER = cfg['zabbix']['user']
+ZABBIX_PASS = cfg['zabbix']['pass']
+
+
+# Variables from parser
+parser = argparse.ArgumentParser(description='Zabbix PSK host update tool')
+
+parser.add_argument('-n','--node', action="store", dest="zabbix_host", required=True, help='The Zabbix agent to modify through API call')
+parser.add_argument('-p','--psk', action="store", dest="zabbix_psk", required=True, help='The Pre-Shared Key to use for zabbix encryption')
+parser.add_argument('-i','--identity', action="store", dest="zabbix_psk_identity", required=True, help='The PSKK Identity to use for zabbix communication')
+
+zabbix_args = parser.parse_args()
+ZABBIX_HOST = zabbix_args.zabbix_host
+ZABBIX_PSK = zabbix_args.zabbix_psk
+ZABBIX_PSK_IDENTITY = zabbix_args.zabbix_psk_identity
+
+zapi = ZabbixAPI(ZABBIX_SERVER)
+
+# Login to the Zabbix API
+try:
+  zapi.login(ZABBIX_USER, ZABBIX_PASS)
+  print("Connected to Zabbix API Version [{}] on server [{}]".format(zapi.api_version(),ZABBIX_SERVER))
+except ZabbixAPIException as e:
+  print("[ERROR] unable to connect to {} with current credentials".format(ZABBIX_SERVER))
+  print(e)
+  sys.exit(1)
+
+hosts = zapi.host.get(filter={"host": ZABBIX_HOST}, selectInterfaces=["interfaceid"])
+if hosts:
+  host_id = hosts[0]["hostid"]
+  print("[SUCCESS] Found matching host id  [{}] for host [{}]".format(host_id,ZABBIX_HOST))
+  try:
+    zapi.host.update(
+      hostid = host_id, 
+      tls_connect = '2', 
+      tls_accept = '2',
+      tls_psk_identity = ZABBIX_PSK_IDENTITY, 
+      tls_psk = ZABBIX_PSK
+    )
+  except ZabbixAPIException as e:
+    print(e)
+    sys.exit(1)
+else:
+  print("[ERROR] : Host {} not found in zabbix DB".format(ZABBIX_HOST))
+  sys.exit(1)

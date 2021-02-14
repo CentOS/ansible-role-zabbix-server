@@ -1,6 +1,6 @@
 - name: Ensuring some cli tools are available for wrapper scripts
   yum:
-    name: ['zabbix-cli', 'jq']
+    name: "{{ zabbix_cli_pkgs }}"
     state: installed
 
 - name: Directory structure for zabbix-cli
@@ -16,18 +16,24 @@
     src: zabbix-cli.conf.j2
     dest: /etc/zabbix-cli/zabbix-cli.conf
 
-- name: Auth file for zabbix-cli
+- name: Auth files for zabbix-cli/zapi-tools scripts
   template:
-    src: zabbix-cli_auth.j2
-    dest: /root/.zabbix-cli_auth
+    src: "{{ item }}.j2"
+    dest: "/root/.{{ item }}"
     owner: root
     group: root
     mode: 0400
+  with_items:
+    - zabbix-cli_auth
+    - zapi-tools.yaml
 
-- name: Wrapper script for host config
+- name: Distributing some script for Zabbix API automation
   template:
-    src: zabbix_host_tool
-    dest: /usr/libexec/centos/zabbix_host_tool
+    src: "scripts/{{ item }}.j2"
+    dest: "/usr/libexec/centos/{{ item }}"
     owner: root
     group: root
     mode: 0750
+  with_items:
+    - zabbix_host_tool
+    - zapi-update-agent-psk
