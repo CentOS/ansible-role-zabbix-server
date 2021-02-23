@@ -162,16 +162,7 @@
     iptables_allowed_from: "{{ zabbix_iptables_from }}"
 
 # Custom zabbix scripts
-- name: Importing zabbix scripts
-  copy:
-    src: "{{ item }}"
-    dest: /usr/lib/zabbix/
-    mode: 0755
-  with_items:
-    - alertscripts
-    - externalscripts
-  tags:
-    - scripts
+- include_tasks: scripts.yml
 
 # Backup
 - name: Ensuring backup user and jobs

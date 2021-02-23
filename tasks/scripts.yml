@@ -1,0 +1,18 @@
+---
+# tasks file for zabbix-server
+# Contains the task for external scripts or alertscripts
+# Can be included on proxies automatically too
+
+# Custom zabbix scripts
+- name: Importing zabbix scripts
+  copy:
+    src: "{{ item }}"
+    dest: /usr/lib/zabbix/
+    mode: 0755
+  with_items:
+    - alertscripts
+    - externalscripts
+  tags:
+    - scripts
+
+    
