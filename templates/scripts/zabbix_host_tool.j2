@@ -14,6 +14,8 @@ You need to call the script like this : $0 -arguments
  -n : node/host to configure in zabbix (mandatory)
  -t : template to link to host in zabbix
  -g : zabbix groups the node should be member of
+ -m : zabbix hostmacro to update
+ -v : field value (can be used for macro)
  -h : display this help
 
 EOF
@@ -26,7 +28,7 @@ if [ -z "$1" ] ; then
 fi
 }
 
-while getopts "hn:t:g:" option
+while getopts "hn:t:g:m:v:" option
 do
   case ${option} in
     h)
@@ -41,6 +43,12 @@ do
       ;;
     g)
       zabbix_group=${OPTARG}
+      ;;
+    m)
+      zabbix_macro=${OPTARG}
+      ;;
+    v)
+      zabbix_field_value=${OPTARG}
       ;;
     ?)
       usage
@@ -77,6 +85,20 @@ if [ ! -z "${zabbix_group}" ]; then
   echo $json_host_details | jq '.[].groups[].name' |grep -q "${zabbix_group}"
   if [ "$?" -ne "0" ]; then
     zabbix-cli -o json -C "add_host_to_hostgroup ${zabbix_host} \"${zabbix_group}\"" >/dev/null
+    if [ "$?" -ne "0" ] ; then
+      exit 1
+    else
+      exit 2
+    fi 
+  else
+    exit 0
+  fi
+fi
+
+#
+if [ ! -z "${zabbix_macro}" ]; then
+  if [ ! -z  "${zabbix_field_value}" ] && [ ! -z "${zabbix_field_value}" ] ; then
+    zabbix-cli -o json -C "define_host_usermacro ${zabbix_host} \"${zabbix_macro}\" \"${zabbix_field_value}\" " >/dev/null
     if [ "$?" -ne "0" ] ; then
       exit 1
     else
