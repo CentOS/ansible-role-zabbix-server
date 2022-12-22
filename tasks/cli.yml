@@ -1,10 +1,10 @@
 - name: Ensuring some cli tools are available for wrapper scripts
-  yum:
+  ansible.builtin.yum:
     name: "{{ zabbix_cli_pkgs }}"
     state: installed
 
 - name: Directory structure for zabbix-cli
-  file:
+  ansible.builtin.file:
     path: /etc/zabbix-cli
     state: directory
     owner: root
@@ -12,12 +12,12 @@
     mode: 0750
 
 - name: Template for zabbix-cli
-  template:
+  ansible.builtin.template:
     src: zabbix-cli.conf.j2
     dest: /etc/zabbix-cli/zabbix-cli.conf
 
 - name: Auth files for zabbix-cli/zapi-tools scripts
-  template:
+  ansible.builtin.template:
     src: "{{ item }}.j2"
     dest: "/root/.{{ item }}"
     owner: root
@@ -28,7 +28,7 @@
     - zapi-tools.yaml
 
 - name: Distributing some script for Zabbix API automation
-  template:
+  ansible.builtin.template:
     src: "scripts/{{ item }}.j2"
     dest: "/usr/libexec/centos/{{ item }}"
     owner: root

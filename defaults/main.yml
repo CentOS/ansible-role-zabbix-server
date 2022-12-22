@@ -8,21 +8,22 @@ zabbix_db_user: zabbix
 zabbix_db_pass: monitorme
 
 # Zabbix server settings, see official zabbix doc for explanations
-zabbix_pollers: 120
-zabbix_ipmi_pollers: 2
-zabbix_proxy_pollers: 5
-zabbix_unreach_pollers: 30
-zabbix_http_pollers: 10
-zabbix_preprocessors: 10
-zabbix_trappers: 240
-zabbix_pingers: 20
-zabbix_db_syncers: 6
-zabbix_cache_size: 128M
-zabbix_history_cache_size: 64M
+zabbix_pollers: 120           # number of zabbix pollers
+zabbix_ipmi_pollers: 2        # number of ipmi poolers
+zabbix_proxy_pollers: 5       # number of proxy pollers
+zabbix_unreach_pollers: 30    # number of poller verifying unreachable nodes
+zabbix_http_pollers: 10       # number of http/web scenario pollers
+zabbix_preprocessors: 10      # number of preprocessor for incoming json
+zabbix_trappers: 240          # number of simple trappers
+zabbix_pingers: 20            # number of icmp pingers
+zabbix_db_syncers: 6          # number of db syncer threads
+zabbix_LogSlowQueries: 3000   # When to log db query in milliseconds, so 3s here
+zabbix_cache_size: 128M       # zabbix cache size (general)
+zabbix_history_cache_size: 64M  # same but for history cache
 zabbix_value_cache_size: 128M
 zabbix_trend_cache_size: 32M
-zabbix_proxy_conf_frequency: 300
-zabbix_proxy_data_frequency: 60
+zabbix_proxy_conf_frequency: 300  # when should proxies "check-in" for new config (in seconds)
+zabbix_proxy_data_frequency: 60   # when should proxies push collected data (in seconds)
 
 # httpd vhost and settings
 zabbix_httpd_vhost_name: localhost.localdomain

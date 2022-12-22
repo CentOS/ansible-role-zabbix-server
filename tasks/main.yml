@@ -19,7 +19,9 @@
         db_user: "{{ zabbix_db_user }}"
         db_pass: "{{ zabbix_db_pass }}"
         db_name: "{{ zabbix_db_name }}"
-
+        db_encoding: utf8mb4
+        db_collation: utf8mb4_bin
+ 
     - name: Opening iptables if needed on remote mysql host
       include_role: 
         name: iptables
@@ -27,7 +29,7 @@
   when: use_remote_mysql_host
   delegate_to: "{{ mysql_host }}"
 
-- include_role:
+- ansible.builtin.include_role:
     name: mysql
   when: not use_remote_mysql_host
 
@@ -39,21 +41,23 @@
     mysql_db_user: "{{ zabbix_db_user }}"
     mysql_db_pass: "{{ zabbix_db_pass }}"
     mysql_db_name: "{{ zabbix_db_name }}"
+    mysql_db_encoding: utf8mb4
+    mysql_db_collation: utf8mb4_bin
   when: not use_remote_mysql_host
   tags:
     - db
 
 - name: Configuring httpd
-  include_role:
+  ansible.builtin.include_role:
     name: httpd
 
 - name: Configuring https
-  include_role:
+  ansible.builtin.include_role:
     name: httpd
     tasks_from: tls
 
 - block:
-    - include_role:
+    - ansible.builtin.include_role:
         name: httpd
         tasks_from: scl-php
     - name: Installing some PHP pkgs from SCL (el7)
@@ -63,69 +67,73 @@
       notify: restart_httpd  
     # Removing (for upgrade case) some pkgs before installing new ones (strange deps loop)
     - name: Cleaning up non SCL pkgs before installing new ones (el7)
-      yum:
+      ansible.builtin.yum:
         name: zabbix-web-mysql
         state: removed
     # Fix for php73 it doesn't seem provided in zabbix rpm but it was for php72
     - name: Configuring php73-fpm for zabbix
-      template:
+      ansible.builtin.template:
         src: rh-php73-fpm-zabbix.conf.j2
         dest: /etc/opt/rh/rh-php73/php-fpm.d/zabbix.conf
       notify: restart_rh_php73_fpm
-
   when: ansible_distribution_major_version == '7'
 
+
 - name: Installing required pkgs for Zabbix
-  yum:
+  ansible.builtin.yum:
     name: "{{ zabbix_server_pkgs }}"
     state: latest
 
 - name: Specific config for php73/scl (el7)
-  template:
+  ansible.builtin.template:
     src: httpd-php-zabbix.conf.j2
     dest: /etc/httpd/conf.d/zabbix.conf
   notify: restart_httpd  
   when: ansible_distribution_major_version == '7'
     
-
-- name: Finding the schema to load in mysql
-  shell: find /usr/share/doc -iname create.sql.gz|grep zabbix
-  register: zabbix_sql_schema
-  when: mysql_created_db.changed
+- name: Ensuring php-fpm service is started
+  ansible.builtin.service:
+    name: php-fpm
+    state: started
+    enabled: True
+  when: ansible_distribution_major_version >= '8'
+  tags:
+    php-fpm
 
 - name: Importing mysql schema if needed
-  mysql_db:
+  community.mysql.mysql_db:
     name: "{{ zabbix_db_name }}"
     state: import
-    target: "{{ zabbix_sql_schema.stdout }}"
+    target: /usr/share/zabbix-sql-scripts/mysql/server.sql.gz
   when: mysql_created_db.changed
   tags:
     - db
 
+- include_tasks: selinux.yml
+
 - name: Configuring zabbix server
-  template:
+  ansible.builtin.template:
     src: zabbix_server.conf.j2
     dest: /etc/zabbix/zabbix_server.conf
     mode: 0644
   notify: restart_zabbix_server
  
 - name: Ensuring Zabbix server is started
-  service:
+  ansible.builtin.service:
     name: zabbix-server
     state: started
     enabled: True          
 
 - name: Configure Zabbix web UI
-  template:
+  ansible.builtin.template:
     src: zabbix.conf.php.j2
     dest: /etc/zabbix/web/zabbix.conf.php
     mode: 0644
 
-- include_tasks: selinux.yml
 - include_tasks: cli.yml
 
 - name: Configuring http vhost
-  template:
+  ansible.builtin.template:
     src: httpd-zabbix.conf.j2
     dest: /etc/httpd/conf.d/02_zabbix.conf
     mode: 0644
@@ -133,7 +141,7 @@
 
 # https is needed
 - name: Distributing TLS keys
-  include_role:
+  ansible.builtin.include_role:
     name: httpd
     tasks_from: pki-tls
   vars:
@@ -143,7 +151,7 @@
     - tls
 
 - name: Configuring https vhost
-  template:
+  ansible.builtin.template:
     src: httpd-ssl-zabbix.conf.j2
     dest: /etc/httpd/conf.d/ssl-02_zabbix.conf
     mode: 0644
@@ -152,7 +160,7 @@
  
 # Iptables rules
 - name: Allowing src ip to reach zabbix server
-  include_role:
+  ansible.builtin.include_role:
     name: iptables
     tasks_from: custom-policy-list
   vars:
@@ -166,11 +174,11 @@
 
 # Backup
 - name: Ensuring backup user and jobs
-  include_role:
+  ansible.builtin.include_role:
     name: centos-backup
     tasks_from: client
 
-- include_role:
+- ansible.builtin.include_role:
     name: postfix
     tasks_from: relay_to
   vars:

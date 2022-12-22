@@ -1,5 +1,6 @@
 zabbix_server_pkgs:
   - zabbix-server-mysql
+  - zabbix-sql-scripts
   - zabbix-web
   - zabbix-web-mysql
   - zabbix-apache-conf
