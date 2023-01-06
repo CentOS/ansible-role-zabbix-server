@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+
+"""
+Looks up a host based on its name, and then update PSK/TLS settings
+Needs ~/.zapi-tools.yaml like this for authentication and zabbix api server url:
+zabbix:
+  server:
+  user:
+  pass:
+"""
+
+from pyzabbix import ZabbixAPI, ZabbixAPIException
+import sys
+import os
+import yaml
+import argparse
+
+# Parsing variables from config file
+config_file = os.getenv('HOME')+'/.zapi-tools.yaml'
+if os.path.exists(config_file):
+  with open(config_file, 'r') as ymlfile:
+    cfg = yaml.load(ymlfile)
+else:
+  print("%s config file not found !" % (config_file))
+  sys.exit(1)
+
+ZABBIX_SERVER = cfg['zabbix']['server']
+ZABBIX_USER = cfg['zabbix']['user']
+ZABBIX_PASS = cfg['zabbix']['pass']
+
+
+# Variables from parser
+parser = argparse.ArgumentParser(description='Zabbix PSK host update tool')
+
+parser.add_argument('-n','--node', action="store", dest="zabbix_host", required=True, help='The Zabbix agent to modify through API call')
+parser.add_argument('--longitude', action="store", dest="zabbix_host_longitude", required=True, help='The host longitude')
+parser.add_argument('--latitude', action="store", dest="zabbix_host_latitude", required=True, help='The host latitude')
+
+zabbix_args = parser.parse_args()
+ZABBIX_HOST = zabbix_args.zabbix_host
+ZABBIX_HOST_LONGITUDE = zabbix_args.zabbix_host_longitude
+ZABBIX_HOST_LATITUDE = zabbix_args.zabbix_host_latitude
+
+zapi = ZabbixAPI(ZABBIX_SERVER)
+
+# Login to the Zabbix API
+try:
+  zapi.login(ZABBIX_USER, ZABBIX_PASS)
+  print("Connected to Zabbix API Version [{}] on server [{}]".format(zapi.api_version(),ZABBIX_SERVER))
+except ZabbixAPIException as e:
+  print("[ERROR] unable to connect to {} with current credentials".format(ZABBIX_SERVER))
+  print(e)
+  sys.exit(1)
+
+hosts = zapi.host.get(filter={"host": ZABBIX_HOST}, selectInterfaces=["interfaceid"])
+if hosts:
+  host_id = hosts[0]["hostid"]
+  print("[SUCCESS] Found matching host id  [{}] for host [{}]".format(host_id,ZABBIX_HOST))
+  try:
+    zapi.host.update(
+      hostid = host_id, 
+      inventory_mode = '1',
+      inventory = {
+        "location_lon": ZABBIX_HOST_LONGITUDE,
+        "location_lat": ZABBIX_HOST_LATITUDE
+      } 
+    )
+  except ZabbixAPIException as e:
+    print(e)
+    sys.exit(1)
+else:
+  print("[ERROR] : Host {} not found in zabbix DB".format(ZABBIX_HOST))
+  sys.exit(1)
