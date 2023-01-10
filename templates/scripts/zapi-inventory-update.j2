@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Looks up a host based on its name, and then update PSK/TLS settings
+Looks up a host based on its name, and then update inventory based on key/value pairs
 Needs ~/.zapi-tools.yaml like this for authentication and zabbix api server url:
 zabbix:
   server:
@@ -30,16 +30,16 @@ ZABBIX_PASS = cfg['zabbix']['pass']
 
 
 # Variables from parser
-parser = argparse.ArgumentParser(description='Zabbix PSK host update tool')
+parser = argparse.ArgumentParser(description='Zabbix agent inventory update tool')
 
 parser.add_argument('-n','--node', action="store", dest="zabbix_host", required=True, help='The Zabbix agent to modify through API call')
-parser.add_argument('--longitude', action="store", dest="zabbix_host_longitude", required=True, help='The host longitude')
-parser.add_argument('--latitude', action="store", dest="zabbix_host_latitude", required=True, help='The host latitude')
+parser.add_argument('-k', '--inventory_key', action="store", dest="zabbix_inventory_key", required=True, help='The agent inventory key to update')
+parser.add_argument('-v','--inventory_value', action="store", dest="zabbix_inventory_value", required=True, help='The agent inventory value')
 
 zabbix_args = parser.parse_args()
 ZABBIX_HOST = zabbix_args.zabbix_host
-ZABBIX_HOST_LONGITUDE = zabbix_args.zabbix_host_longitude
-ZABBIX_HOST_LATITUDE = zabbix_args.zabbix_host_latitude
+ZABBIX_HOST_INVENTORY_KEY = zabbix_args.zabbix_inventory_key
+ZABBIX_HOST_INVENTORY_VALUE = zabbix_args.zabbix_inventory_value
 
 zapi = ZabbixAPI(ZABBIX_SERVER)
 
@@ -61,8 +61,7 @@ if hosts:
       hostid = host_id, 
       inventory_mode = '1',
       inventory = {
-        "location_lon": ZABBIX_HOST_LONGITUDE,
-        "location_lat": ZABBIX_HOST_LATITUDE
+        ZABBIX_HOST_INVENTORY_KEY: ZABBIX_HOST_INVENTORY_VALUE
       } 
     )
   except ZabbixAPIException as e:
@@ -71,3 +70,4 @@ if hosts:
 else:
   print("[ERROR] : Host {} not found in zabbix DB".format(ZABBIX_HOST))
   sys.exit(1)
+

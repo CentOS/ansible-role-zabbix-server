@@ -35,5 +35,6 @@
     group: root
     mode: 0750
   with_items:
-    - zabbix_host_tool
+    - zapi-inventory-update
     - zapi-update-agent-psk
+    - zabbix_host_tool
