@@ -10,7 +10,7 @@
 
 - name: Distributing custom selinux policy
   copy:
-    src: "selinux/{{ item }}"
+    src: "selinux/{{ ansible_distribution_major_version }}/{{ item }}"
     dest: "/etc/selinux/centos/{{ item }}"
   with_items:
     - centos-zabbix-server.pp
