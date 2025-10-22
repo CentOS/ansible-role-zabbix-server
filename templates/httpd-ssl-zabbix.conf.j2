@@ -4,9 +4,9 @@ ErrorLog logs/ssl-{{ zabbix_httpd_vhost_name }}_error.log
 TransferLog logs/ssl-{{ zabbix_httpd_vhost_name }}_access.log
 LogLevel warn
 SSLEngine on
-SSLHonorCipherOrder on
-SSLProtocol all -SSLv2 -SSLv3
-SSLCipherSuite ALL:!ADH:!EXPORT:!SSLv2:RC4+RSA:+HIGH:+MEDIUM:+LOW:!aNULL:!eNULL:!DES:!MD5:!PSK:!RC4
+{{ httpd_tls_ciphers }}
+
+
 SSLCertificateFile /etc/pki/tls/certs/{{ zabbix_httpd_vhost_name }}.crt
 SSLCertificateKeyFile /etc/pki/tls/private/{{ zabbix_httpd_vhost_name }}.key
 SSLCertificateChainFile /etc/pki/tls/certs/{{ zabbix_httpd_vhost_name }}-CAChain.crt
