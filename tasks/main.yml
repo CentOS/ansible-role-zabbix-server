@@ -48,8 +48,10 @@
     - db
 
 - name: Configuring httpd
-  ansible.builtin.include_role:
+  ansible.builtin.import_role:
     name: httpd
+  vars:
+    - httpd_tls: True
 
 - name: Configuring https
   ansible.builtin.include_role:
