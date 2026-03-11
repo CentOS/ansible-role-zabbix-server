@@ -132,6 +132,13 @@
     dest: /etc/zabbix/web/zabbix.conf.php
     mode: 0644
 
+- name: Configure Zabbix SAML IDP cert
+  copy:
+    src: "{{ pkistore }}/{{ zabbix_saml_certname }}"
+    dest: "/etc/zabbix/web/idp.crt"
+    mode: 0644
+  when: zabbix_saml
+
 - include_tasks: cli.yml
 
 - name: Configuring http vhost

@@ -17,5 +17,10 @@ $ZBX_SERVER_PORT = '10051';
 $ZBX_SERVER_NAME = 'localhost';
 
 $IMAGE_FORMAT_DEFAULT = IMAGE_FORMAT_PNG;
-?>
 
+{% if zabbix_saml %}
+$SSO['SETTINGS'] = ['strict' => false, 'baseurl' => "{{ zabbix_api_url }}", 'use_proxy_headers' => true];
+$SSO['IDP_CERT'] = '/etc/zabbix/web/idp.crt';
+{% endif %}
+
+?>
