@@ -40,3 +40,6 @@ zabbix_iptables_from:
 zabbix_api_url: http://localhost.localdomain/zabbix
 zabbix_api_user: user
 zabbix_api_pass: pass
+zabbix_saml: False
+# This should be a cert filename in the pkistore
+zabbix_saml_certname: False
