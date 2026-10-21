@@ -19,7 +19,7 @@ import argparse
 config_file = os.getenv('HOME')+'/.zapi-tools.yaml'
 if os.path.exists(config_file):
   with open(config_file, 'r') as ymlfile:
-    cfg = yaml.load(ymlfile)
+    cfg = yaml.safe_load(ymlfile)
 else:
   print("%s config file not found !" % (config_file))
   sys.exit(1)
